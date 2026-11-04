@@ -16,7 +16,17 @@ jobs:
       - run: pip install -r requirements.txt
       - run: black --check src
       - run: flake8 src
-      - run: pytest -q
+      - name: Pytest
+        run: |
+          set +e
+          pytest -q
+          code=$?
+          set -e
+          if [ "$code" -eq 5 ]; then
+            echo "No se recolectaron pruebas (esqueleto); se omite el fallo."
+            exit 0
+          fi
+          exit "$code"
       - name: Semgrep
         uses: semgrep/semgrep-action@v1
         with:
