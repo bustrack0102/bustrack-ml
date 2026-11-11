@@ -1,27 +1,30 @@
 # Memoria técnica — BusTrack ML
 
-> Registro vivo. No se borra historial. Última actualización: 2026-10-30.
+> Registro vivo. No se borra historial. Última actualización: 2026-11-11.
 
 ## 1. Estado real
 
-- **Repositorio:** `bustrack-ml-main` (raíz interior; el árbol está anidado `X-main/X-main`).
-- **Tecnología actual:** Python 3.11, FastAPI, scikit-learn, pandas/numpy/scipy, joblib (esqueleto sin código).
-- **Tecnología objetivo:** Python 3.11 + FastAPI + scikit-learn para detección de paradas y patrones de movimiento.
-- **Git:** no hay repositorio Git local; los tags/releases no son verificables.
+- **Repositorio:** `bustrack0102/bustrack-ml`
+- **Tecnología actual:** Python 3.11+, FastAPI, Pydantic v2, NumPy, scikit-learn, pytest, Docker.
+- **Tecnología objetivo:** Python 3.11 + FastAPI + scikit-learn para detección de paradas y anomalías de movimiento.
+- **Git:** conectado a `https://github.com/bustrack0102/bustrack-ml.git` en rama `main`.
 
 ## 2. Funcionalidades implementadas
 
-- Estructura src/{api,core,data,models,pipelines} (solo .gitkeep).
-- requirements.txt con FastAPI, scikit-learn, pandas, numpy, scipy, joblib y pytest.
-- Gobernanza Python/ML en constitution, AGENTS, Memoria y CHECKLIST.
+- Estructura completa `src/{api,core,data,models,pipelines}` implementada y operativa:
+  - `src/main.py`: Aplicación FastAPI, middleware `X-Correlation-ID` y manejadores de errores uniformes (`422`, `500`).
+  - `src/core/{config.py,schemas.py,security.py}`: Validación Pydantic v2 de muestras inerciales (`accelX/Y/Z` finitos, consentimiento explícito obligatorio) y autenticación interna (`X-Internal-Key` / `Bearer`).
+  - `src/data/anonymizer.py`: Anonimización determinista SHA-256 sin PII ni rastreo GPS.
+  - `src/pipelines/signal_pipeline.py`: Ordenamiento cronológico, ventaneo deslizante reproducible y extracción estadística (magnitud RMS, pico, desviación estándar y cruces por cero).
+  - `src/models/classifier.py`: Clasificador versionado (`1.0.0`) para detección de baches severos, vibración moderada, paradas y vía óptima.
+  - `src/api/routes.py`: Endpoints `GET /health` (`14-endpoint-health`) y `POST /inference` (`15-endpoint-inference`) con límite de lote (`413`).
+- Suites de pruebas reales: `UnitTest/test_unit.py`, `IntegrationTest/test_integration.py`, `ModelTest/test_model.py`, `SecurityTest/test_security.py`.
+- `Dockerfile` multietapa con usuario no-root (`appuser`) y `HEALTHCHECK` (`spec-13`).
 
 ## 3. Funcionalidades pendientes
 
-- Todo el código del servicio: app FastAPI, endpoints internos, modelos y pipelines.
-- Procesamiento y anonimización de acelerómetro.
-- Entrenamiento, evaluación, versionado y predicción.
-- Pruebas unitarias, de integración, de modelo y de seguridad.
-- Dockerfile, CI bloqueante y despliegue Azure.
+- Entrenamiento supervisado continuo sobre dataset de campo etiquetado de la región Tula-Tepeji (`spec-07`/`spec-08`).
+- Despliegue del contenedor en Azure Container Instances cuando se habilite instancia dedicada.
 
 ## 4. Arquitectura actual
 
@@ -58,3 +61,4 @@ API central -> ML por HTTP interno; ML devuelve clasificaciones y característic
 - **2026-10-30:** auditoría completa, corrección documental y reorganización SDD.
   Se separan specs históricas de canónicas, se corrigen afirmaciones de stack y se
   documentan migraciones, contratos y Azure propuesto.
+- **2026-11-11:** implementación del servicio FastAPI (`GET /health`, `POST /inference`), anonimizador SHA-256 sin PII, pipeline de ventaneo y extracción de características, clasificador versionado `1.0.0`, `Dockerfile`, 16 pruebas reales (`UnitTest`, `IntegrationTest`, `ModelTest`, `SecurityTest`) y reparación integral de SDD (`check_sdd.ps1`, `docs/endpoints.md`, bloques de aprobación y `checklists/`).

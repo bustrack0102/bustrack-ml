@@ -14,19 +14,12 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
-      - run: black --check src
-      - run: flake8 src
+      - run: black --check src UnitTest IntegrationTest ModelTest SecurityTest
+      - run: flake8 src UnitTest IntegrationTest ModelTest SecurityTest
       - name: Pytest
-        run: |
-          set +e
-          pytest -q
-          code=$?
-          set -e
-          if [ "$code" -eq 5 ]; then
-            echo "No se recolectaron pruebas (esqueleto); se omite el fallo."
-            exit 0
-          fi
-          exit "$code"
+        run: pytest -q
+      - name: Validación SDD
+        run: pwsh -File scripts/check_sdd.ps1
       - name: Semgrep
         uses: semgrep/semgrep-action@v1
         with:
