@@ -62,3 +62,4 @@ API central -> ML por HTTP interno; ML devuelve clasificaciones y característic
   Se separan specs históricas de canónicas, se corrigen afirmaciones de stack y se
   documentan migraciones, contratos y Azure propuesto.
 - **2026-11-11:** implementación del servicio FastAPI (`GET /health`, `POST /inference`), anonimizador SHA-256 sin PII, pipeline de ventaneo y extracción de características, clasificador versionado `1.0.0`, `Dockerfile`, 16 pruebas reales (`UnitTest`, `IntegrationTest`, `ModelTest`, `SecurityTest`) y reparación integral de SDD (`check_sdd.ps1`, `docs/endpoints.md`, bloques de aprobación y `checklists/`).
+- **2026-11-11 (Etapa 0 — v0.2.0 SemVer y CD ACR):** agregada matriz `docs/versionamiento.md` y `.github/workflows/cd-azure.yml` para construir/publicar imagen real en `bustrackacr0102` (evitando crear ACI adicional previo a Container Apps). Verificado local: `pytest -q` (16/16), `check_sdd.ps1` (`SDD-OK`).

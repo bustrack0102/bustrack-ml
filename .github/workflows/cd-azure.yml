@@ -1,0 +1,64 @@
+name: CD Azure Deployment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          pip install -r requirements.txt
+          black --check src UnitTest IntegrationTest ModelTest SecurityTest
+          flake8 src UnitTest IntegrationTest ModelTest SecurityTest
+          pytest -q
+          pwsh -File scripts/check_sdd.ps1
+      - uses: semgrep/semgrep-action@v1
+        with:
+          config: .semgrep/rules/semgrep.yaml
+
+  deploy-azure:
+    needs: [verify]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and push bustrack-ml to ACR
+        run: |
+          ACR_NAME=bustrackacr0102
+          az acr update --name "$ACR_NAME" --admin-enabled true -o none
+          ACR_LOGIN_SERVER=$(az acr show -n $ACR_NAME --query loginServer -o tsv)
+          ACR_USERNAME=$(az acr credential show -n $ACR_NAME --query username -o tsv)
+          ACR_PASSWORD=$(az acr credential show -n $ACR_NAME --query passwords[0].value -o tsv)
+          echo "$ACR_PASSWORD" | docker login "$ACR_LOGIN_SERVER" --username "$ACR_USERNAME" --password-stdin
+          SHORT_SHA="${GITHUB_SHA::12}"
+          TAG="${ACR_LOGIN_SERVER%/}/bustrack-ml:0.2.0-${SHORT_SHA}"
+          TAG_LATEST="${ACR_LOGIN_SERVER%/}/bustrack-ml:latest"
+          docker build -t "$TAG" -t "$TAG_LATEST" -f Dockerfile .
+          docker push "$TAG"
+          docker push "$TAG_LATEST"
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Deploy bustrack-ml when Azure Container App is provisioned
+        run: |
+          if az containerapp show -g rg-bustrack-ncus -n bustrack-ml -o none 2>/dev/null; then
+            az containerapp secret set -g rg-bustrack-ncus -n bustrack-ml \
+              --secrets internal-key="${{ secrets.INTERNAL_SERVICE_KEY }}" -o none
+            az containerapp update -g rg-bustrack-ncus -n bustrack-ml \
+              --image "$IMAGE_TAG" \
+              --set-env-vars INTERNAL_SERVICE_CREDENTIAL=secretref:internal-key -o none
+          else
+            echo "Imagen publicada en ACR ($IMAGE_TAG). Se desplegará al aprovisionar Azure Container Apps en Etapa 4 para evitar costos de ACI."
+          fi
