@@ -1,7 +1,8 @@
 """Model evaluation tests for determinism, sensitivity, and confidence bounds."""
 
 from src.core.schemas import AccelerometerSample, InferenceRequest
-from src.models.classifier import MODEL_VERSION, run_inference
+from src.models.classifier import MODEL_VERSION, load_model_bundle, run_inference
+from src.models.train_classifier import MODEL_ARTIFACT_PATH
 
 
 def _make_batch(
@@ -91,3 +92,11 @@ def test_model_predictions_are_deterministic_and_within_confidence_bounds() -> N
     assert first.confianzaGlobal == second.confianzaGlobal
     assert first.viajeAnonimoHash == second.viajeAnonimoHash
     assert 0.0 <= first.confianzaGlobal <= 1.0
+
+
+def test_joblib_artifact_achieves_target_f1_and_roc_auc() -> None:
+    bundle = load_model_bundle()
+    assert MODEL_ARTIFACT_PATH.exists()
+    metrics = bundle["metrics"]
+    assert metrics["f1_macro"] >= 0.85
+    assert metrics["roc_auc_ovr"] >= 0.88

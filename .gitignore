@@ -27,6 +27,7 @@ data/processed/*
 !data/processed/.gitkeep
 *.pkl
 *.joblib
+!models/stop_detector_v1.joblib
 *.h5
 *.pt
 *.onnx

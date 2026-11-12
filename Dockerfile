@@ -12,6 +12,7 @@ WORKDIR /app
 
 COPY --from=builder /install /usr/local
 COPY src ./src
+COPY models ./models
 
 USER appuser
 EXPOSE 8000

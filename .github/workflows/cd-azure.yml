@@ -44,7 +44,7 @@ jobs:
           ACR_PASSWORD=$(az acr credential show -n $ACR_NAME --query passwords[0].value -o tsv)
           echo "$ACR_PASSWORD" | docker login "$ACR_LOGIN_SERVER" --username "$ACR_USERNAME" --password-stdin
           SHORT_SHA="${GITHUB_SHA::12}"
-          TAG="${ACR_LOGIN_SERVER%/}/bustrack-ml:0.2.0-${SHORT_SHA}"
+          TAG="${ACR_LOGIN_SERVER%/}/bustrack-ml:0.8.0-${SHORT_SHA}"
           TAG_LATEST="${ACR_LOGIN_SERVER%/}/bustrack-ml:latest"
           docker build -t "$TAG" -t "$TAG_LATEST" -f Dockerfile .
           docker push "$TAG"
