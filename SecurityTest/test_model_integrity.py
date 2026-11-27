@@ -27,7 +27,7 @@ def test_source_contains_no_dynamic_code_execution() -> None:
 
 def test_classifier_remains_bounded_under_extreme_values() -> None:
     """Extreme accelerometer values must be validated, not cause a 500 error."""
-    payload = {
+        payload = {
         "viajeId": "VJ-BURST-01",
         "rutaId": "R-01",
         "intervaloMuestreoMs": 100,
