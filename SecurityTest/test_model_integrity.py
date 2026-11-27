@@ -25,7 +25,12 @@ def test_classifier_remains_bounded_under_extreme_adversarial_burst() -> None:
         "consentimientoUsuario": True,
         "muestras": [
             {"timestampRelativoMs": 0, "accelX": 50.0, "accelY": -50.0, "accelZ": 80.0},
-            {"timestampRelativoMs": 100, "accelX": -40.0, "accelY": 40.0, "accelZ": -30.0},
+            {
+                "timestampRelativoMs": 100,
+                "accelX": -40.0,
+                "accelY": 40.0,
+                "accelZ": -30.0,
+            },
         ],
     }
     res = client.post("/inference", json=payload)
